@@ -88,7 +88,7 @@ Al usar el repositorio de TypeORM, heredas estos métodos sin escribir SQL:
 
 TypeORM admite el patrón de diseño de repositorio, por lo que cada entidad tiene su propio repositorio. Estos repositorios se pueden obtener de la fuente de datos de la base de datos.
 
-`src\cats\dto\create-cat.dto.ts`
+`src\cats\entities\cat.entity.ts`
 
 ```typescript
 import {

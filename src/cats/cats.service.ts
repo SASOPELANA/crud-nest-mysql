@@ -100,7 +100,23 @@ export class CatsService {
     return `Esta accion actualiza todos campos del gatito por ID: ${id}`;
   }
 
-  remove(id: number) {
-    return `Esta accion elimina el gatito por ID: ${id}`;
+  // Metodo DELETE
+  async remove(id: number) {
+    try {
+      // validamos que existe el gato en la base de datos
+      const cat = await this.catsRepository.findOneBy({ id });
+
+      if (!cat) {
+        throw new NotFoundException(`El gato con el ID: ${id} no existe.`);
+      }
+
+      // Eliminacion logica con typeorm soft delete --> deja la fecha de eliminacion en la base de datos, definida en la entidad
+      await this.catsRepository.softDelete({ id });
+
+      return { message: `El gato con el ID: ${id} ha sido eliminado.` };
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e;
+      throw new InternalServerErrorException('Error al eliminar el gato de la base de datos.');
+    }
   }
 }
