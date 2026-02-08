@@ -1,0 +1,29 @@
+### GET 
+GET http://localhost:3000
+
+### GET
+GET http://localhost:3000/api/cats
+
+### GET | ID
+GET http://localhost:3000/api/cats/1
+
+### POST
+POST http://localhost:3000/api/cats
+Content-Type: application/json
+
+{
+   "name": "Mina",
+    "age": 1,
+    "breed": "Siamese",
+    "description": "Siamés de ojos azules, muy cariñoso y hablador. Tiene el pelaje crema con puntos café oscuro.",
+    "image": "https://cataas.com/cat/siamese"
+}
+
+### PUT
+PUT http://localhost:3000/api/cats/1
+
+### PATCH
+PATCH http://localhost:3000/api/cats/1
+
+### DELETE
+DELETE http://localhost:3000/api/cats/1
