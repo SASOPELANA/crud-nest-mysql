@@ -10,7 +10,7 @@ GET http://localhost:3000/api/cats HTTP/1.1
 
 ### GET | ID
 
-GET http://localhost:3000/api/cats/4 HTTP/1.1
+GET http://localhost:3000/api/cats/1 HTTP/1.1
 
 
 ### POST
@@ -20,8 +20,8 @@ Content-Type: application/json
 
 {
   "age": 4,
-  "breed": "Cute",
-  "description": "Minis panteras cute y michis.",
+  "breed": "Cute 2",
+  "description": "Minis panteras cute y michis.s",
   "image": "https://cataas.com/cat/black,cute",
   "name": "Gato ramdon de la api de catasas"
 }
@@ -37,20 +37,20 @@ Content-Type: application/json
   "breed": "Siamese",
   "description": "Mi gata siamese color cafe oscuro.",
   "image": "https://cataas.com/cat/siamese",
-  "name": "Lunita"
+  "name": "Lunita3"
   
 }
 
 ### PATCH | PARTIAL
 
-PATCH http://localhost:3000/api/cats/5 HTTP/1.1
+PATCH http://localhost:3000/api/cats/8 HTTP/1.1
 Content-Type: application/json 
 
 {
-  "breed": "Siamese"
+  "breed": "Persian"
 }
 
 
 ### DELETE
 
-DELETE http://localhost:3000/api/cats/0 HTTP/1.1
+DELETE http://localhost:3000/api/cats/80 HTTP/1.1

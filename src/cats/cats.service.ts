@@ -1,9 +1,6 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
-  InternalServerErrorException,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateCatDto } from './dto/create-cat.dto';
@@ -16,8 +13,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 export class CatsService {
   // Inyectamos el repositorio --> lo usaremos para interactuar con la base de datos -> Cat
   constructor(@InjectRepository(Cat) private catsRepository: Repository<Cat>) {}
-
-  private readonly logger = new Logger('CatsService');
 
   //TODO:  Método POST
   async create(createCatDto: CreateCatDto) {
@@ -39,42 +34,27 @@ export class CatsService {
       });
     }
 
-    try {
-      const cat = this.catsRepository.create(createCatDto);
+    const cat = this.catsRepository.create(createCatDto);
+    const resCat = await this.catsRepository.save(cat);
 
-      const resCat = await this.catsRepository.save(cat);
-
-      if (!resCat) {
-        throw new NotFoundException('No se pudo agregar el gatito a la lista.');
-      }
-
-      return resCat;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        error,
-        'Error en la base de datos.',
-      );
+    if (!resCat) {
+      throw new NotFoundException('No se pudo agregar el gatito a la lista.');
     }
+
+    return resCat;
   }
 
   //TODO: Metodo GET ALL
   async findAll() {
-    try {
-      const resCats = await this.catsRepository.find();
+    const resCats = await this.catsRepository.find();
 
-      if (resCats.length === 0) {
-        throw new NotFoundException(
-          'No se encontraron gatitos en la base de datos.',
-        );
-      }
-
-      return resCats;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        error,
-        'Error en la base de datos.',
+    if (resCats.length === 0) {
+      throw new NotFoundException(
+        'No se encontraron gatitos en la base de datos.',
       );
     }
+
+    return resCats;
   }
 
   //TODO: Método GET BY ID
@@ -87,21 +67,14 @@ export class CatsService {
       );
     }
 
-    try {
-      return resIdCat;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        error,
-        'Error en la base de datos.',
-      );
-    }
+    return resIdCat;
   }
 
   //TODO: Métodos PATCH --> Actualizar los campos parciales
   // Aquí se usa el dto --> updateCatDto --> EL cual deja los campos opcionales
   // Recomendado usar el preload para un update completo a nivel entidad
   // preload garantiza update semántico a nivel entidad
-  //  actualiza todos los campos y la fecha (updatedAt) en la DB
+  // actualiza todos los campos y la fecha (updatedAt) en la DB
   async updateCatPartial(id: number, updateCatDto: UpdateCatDto) {
     // Buscamos si ESTE gato (ID) ya tiene esos mismos datos
     const catDateExists = await this.catsRepository.findOne({
@@ -128,11 +101,7 @@ export class CatsService {
       throw new NotFoundException(`El gato con id ${id} no existe`);
     }
 
-    try {
-      return await this.catsRepository.save(cat);
-    } catch (error) {
-      this.handleDBException(error);
-    }
+    return await this.catsRepository.save(cat);
   }
 
   //TODO: Método PUT --> Actualizar todos los campos
@@ -165,48 +134,21 @@ export class CatsService {
       throw new NotFoundException(`El gato con id ${id} no existe`);
     }
 
-    try {
-      return await this.catsRepository.save(cat);
-    } catch (error) {
-      this.handleDBException(error);
-    }
-  }
-
-  // Método centralizado para errores
-  // Opcional para manejar los errores de la base de datos
-  // Nest de por si mismo maneja los errores de la base de datos
-  private handleDBException(error: any) {
-    const dbError = error as { code?: string };
-
-    // codigo de error de postgres --> 23505 --> duplicate
-    // codigo de error de mysql --> 1062 --> duplicate
-    // codigo de error de sql server --> 2627 --> duplicate
-    // codigo de errro de mongo --> 11000 --> duplicate
-    if (dbError.code === '1062') {
-      throw new BadRequestException('Ya existe un registro con esos datos');
-    }
-
-    this.logger.error(error);
-    throw new InternalServerErrorException('Error inesperado del servidor');
+    return await this.catsRepository.save(cat);
   }
 
   //TODO: Método DELETE
   async remove(id: number) {
-    try {
-      // validamos que existe el gato en la base de datos
-      const cat = await this.catsRepository.findOneBy({ id });
+    // validamos que existe el gato en la base de datos
+    const cat = await this.catsRepository.findOneBy({ id });
 
-      if (!cat) {
-        throw new NotFoundException(`El gato con el ID: ${id} no existe.`);
-      }
-
-      // Eliminación lógica con typeorm soft delete --> deja la fecha de eliminación en la base de datos, definida en la entidad
-      await this.catsRepository.softDelete({ id });
-
-      return { message: `El gato con el ID: ${id} ha sido eliminado.` };
-    } catch (e) {
-      if (e instanceof NotFoundException) throw e;
-      throw new InternalServerErrorException('Error en la base de datos.');
+    if (!cat) {
+      throw new NotFoundException(`El gato con el ID: ${id} no existe.`);
     }
+
+    // Eliminación lógica con typeorm soft delete --> deja la fecha de eliminación en la base de datos, definida en la entidad
+    await this.catsRepository.softDelete({ id });
+
+    return { message: `El gato con el ID: ${id} ha sido eliminado.` };
   }
 }

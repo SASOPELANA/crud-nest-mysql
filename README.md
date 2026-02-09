@@ -12,6 +12,78 @@ TypeORM `typeorm` es definitivamente el mapeador relacional de objetos (ORM) má
 
 Guía a través de la documentación Oficial de NestJS. Para una mejor experiencia de desarrollo y buenas prácticas.
 
+## Manejo de Errores con Excepciones HTTP en NestJS
+
+NestJS provee excepciones listas para usar que lanzan automáticamente el status HTTP correcto y formatean la respuesta en JSON.
+
+**Filosofía recomendada**  
+
+- Lanzar excepciones directamente (`throw`) desde **services** (lógica de negocio) o controllers (validaciones simples).  
+- **No usar try/catch** salvo que necesites loguear, hacer cleanup o transformar el error.  
+- El filtro global de excepciones de NestJS las captura y responde automáticamente.
+
+## Excepciones más usadas y cuándo lanzarlas
+
+| Excepción                        | Status | Cuándo usarla (caso típico)                              | Ejemplo de uso práctico                                      |
+|----------------------------------|--------|----------------------------------------------------------|--------------------------------------------------------------|
+| `BadRequestException`            | 400    | Datos inválidos, validación fallida, parámetro malo      | Email con formato incorrecto, campo requerido faltante      |
+| `UnauthorizedException`          | 401    | No autenticado (sin token, token inválido/expirado)      | Intento de acceso sin JWT válido o credenciales erróneas     |
+| `ForbiddenException`             | 403    | Autenticado pero sin permiso (rol insuficiente)          | Usuario "user" intenta eliminar un recurso de "admin"       |
+| `NotFoundException`              | 404    | Recurso no existe en la base de datos                    | `GET /users/999` → el usuario con ID 999 no existe           |
+| `ConflictException`              | 409    | Conflicto de estado (duplicado, ya existe)               | Registro de usuario con email que ya está en uso             |
+| `GoneException`                  | 410    | Recurso existió pero ya no está disponible               | Token de recuperación de contraseña ya expirado/usado       |
+| `InternalServerErrorException`   | 500    | Error grave del servidor (usar muy poco manualmente)     | Mejor dejar que errores no manejados suban solos             |
+
+## Ejemplos prácticos
+
+### 1. En un Service (recomendado – lógica de negocio)
+
+```ts
+// src/users/users.service.ts  --> ejemplo de manejo de errores
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+
+@Injectable()
+export class UsersService {
+  constructor(private userRepository: UserRepository) {}
+
+  async findOne(id: number): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`El usuario con ID ${id} no existe`);
+    }
+    return user;
+  }
+
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    if (!createUserDto.email.includes('@')) {
+      throw new BadRequestException('El email debe ser válido');
+    }
+
+    const emailExists = await this.userRepository.existsByEmail(createUserDto.email);
+    if (emailExists) {
+      throw new ConflictException('El email ya está registrado');
+    }
+
+    return this.userRepository.save(createUserDto);
+  }
+
+  async update(id: number, updateDto: UpdateUserDto, currentUser: User) {
+    const user = await this.findOne(id); // ya lanza NotFound si no existe
+
+    if (user.id !== currentUser.id && !currentUser.isAdmin) {
+      throw new ForbiddenException('No tienes permiso para modificar este usuario');
+    }
+
+    // ... actualizar
+  }
+}
+```
+
 ## Pre requisitos para correr el proyecto
 
 - Node.js (version 18 o superior)
