@@ -1,24 +1,29 @@
+// Importamos los decoradores de class-validator
+// IsInt, IsOptional, IsPositive, IsString, IsUrl, MinLength --> para la validación de datos en el DTO
+
 import {
   IsInt,
   IsOptional,
   IsPositive,
   IsString,
   IsUrl,
+  Max,
   MinLength,
 } from 'class-validator';
 
 export class CreateCatDto {
   @IsString()
   @MinLength(3)
-  name: string;
+  name!: string;
 
   @IsInt()
   @IsPositive()
-  age: number;
+  @Max(20)
+  age!: number;
 
   @IsString()
   @MinLength(6)
-  description: string;
+  description!: string;
 
   @IsString()
   @IsOptional()
@@ -27,5 +32,5 @@ export class CreateCatDto {
 
   @IsString()
   @IsUrl()
-  image: string;
+  image!: string;
 }

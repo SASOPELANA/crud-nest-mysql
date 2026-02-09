@@ -2,24 +2,24 @@
 
 ## Descripción
 
-En este proyecto decidí usar NestJS para tener una API REST con TypeScript, motivo de estar mejor organizado y tener una mejor estructura del proyecto, usando arquitectura monolítica modular, con la carpeta src con los modulos, controllers, services, dtos, types, etc. Para la gestion de la base de datos use TypeORM, Docker para tener un contenedor con MySQL, y para tener una documentación legible y fácil de entender la API use Swagger para probar los endpoints.
+En este proyecto decidí usar NestJS para tener una API REST con TypeScript, motivo de estar mejor organizado y tener una mejor estructura del proyecto, usando arquitectura monolítica modular, con la carpeta src con los módulos, controllers, services, dtos, types, etc. Para la gestión de la base de datos use TypeORM, Docker para tener un contenedor con MySQL, y para tener una documentación legible y fácil de entender la API use Swagger para probar los endpoints.
 
-Uso de API REST [https://cataas.com](https://cataas.com) para renderizar imagenes en el modo desarrolo.
+Uso de API REST [https://cataas.com](https://cataas.com) para renderizar imágenes en el modo desarrollo.
 
-Configuración de variables de entorno con el paquete `@nestjs/config` para tener una mejor gestión de las variables de entorno para credenciales y informacion sensible como password, bases de datos, tokens, confiruacion de entorno, y para la validación de los DTOs use el paquete `class-validator` y `class-transformer` para tener una validación mas robusta y fácil de usar.
+Configuración de variables de entorno con el paquete `@nestjs/config` para tener una mejor gestión de las variables de entorno para credenciales y información sensible como password, bases de datos, tokens, confiruacion de entorno, y para la validación de los DTOs use el paquete `class-validator` y `class-transformer` para tener una validación mas robusta y fácil de usar.
 
 TypeORM `typeorm` es definitivamente el mapeador relacional de objetos (ORM) más maduro disponible en el mundo node.js. Ya que está escrito en TypeScript, funciona bastante bien con el marco Nest.
 
-Guia a través de la documentación Oficial de NestJS. Para una mejor experiencia de desarrollo y buenas prácticas.
+Guía a través de la documentación Oficial de NestJS. Para una mejor experiencia de desarrollo y buenas prácticas.
 
-## Pre rquisitos para correr el proyecto
+## Pre requisitos para correr el proyecto
 
 - Node.js (version 18 o superior)
 - pnpm o elegir el gestor de preferencia npm o yarn
 - Docker (para correr el contenedor de MySQL)
 - Git (para manejar las versiones del proyecto y su repositorio remoto)
 
-## Instalacion
+## Instalación
 
 1.Clonar el repositorio remoto en tu maquina local o en tu entorno de desarrollo
 
@@ -84,7 +84,7 @@ Al usar el repositorio de TypeORM, heredas estos métodos sin escribir SQL:
 
 - **Mejora la seguridad:** Al controlar el acceso a los datos a través del patrón de repositorio, es más fácil aplicar controles de acceso y medidas de seguridad.
 
-## TypeORM Patron de Repositorio (Repository Pattern)
+## TypeORM Patrón de Repositorio (Repository Pattern)
 
 TypeORM admite el patrón de diseño de repositorio, por lo que cada entidad tiene su propio repositorio. Estos repositorios se pueden obtener de la fuente de datos de la base de datos.
 
@@ -125,9 +125,45 @@ export class Cat {
 }
 ```
 
-## Metodos de la API
+## Métodos de la API
 
-### Gatos
+### Lista de Gatos
+
+#### Agregar un gato a la lista
+
+- **POST** `/api/cats`
+- **Descripción:** Agrega un gato a la lista.
+- **Body (JSON):**
+
+- **Content-Type:** application/json
+
+```json
+{
+  "name": "El gato con botas",
+  "age": 4,
+  "breed": "Tabby Naranja",
+  "description": "El nombre del gato con botas, solo referencia al personaje.",
+  "image": "https://cataas.com/cat/tabby"
+}
+```
+
+- **Repuesta al agregar al nuevo gato a la db:**
+
+```json
+[
+  {
+    "id": 2,
+    "name": "El gato con botas",
+    "age": 4,
+    "description": "El nombre del gato con botas, solo referencia al personaje.",
+    "breed": "Tabby Naranja",
+    "image": "https://cataas.com/cat/tabby",
+    "createAt": "2026-02-08T03:13:41.882Z",
+    "updateAt": "2026-02-08T03:13:41.882Z",
+    "deleteAt": null
+  }
+]
+```
 
 #### Obtener todos los gatos
 
@@ -197,38 +233,81 @@ export class Cat {
 ]
 ```
 
-#### Agregar un gato a la lista
+#### Actualizar parcialmente (PATCH `/api/cats/:id`)
 
-- **POST** `/api/cats`
-- **Descripción:** Agrega un gato a la lista.
-- **Body (JSON):**
-
-- **Content-Type:** application/json
+- **PATCH** `/api/cats/:id`
+- **Descripción:** Actualiza uno o varios campos de un gato existente. Solo se actualizan los campos incluidos en el body; los demás permanecen igual.
+- **Parámetros:** `id` (path, requerido): ID del gato a actualizar.
+- **Body (JSON):** (ejemplo con campos parciales)
 
 ```json
 {
+  "age": 5,
+  "description": "Ahora es más juguetón y duerme menos."
+}
+```
+
+- **Respuesta de ejemplo:** objeto del gato actualizado.
+
+```json
+{
+  "id": 2,
   "name": "El gato con botas",
-  "age": 4,
+  "age": 5,
+  "description": "Ahora es más juguetón y duerme menos.",
   "breed": "Tabby Naranja",
-  "description": "El nombre del gato con botas, solo referencia al personaje.",
+  "image": "https://cataas.com/cat/tabby",
+  "createAt": "2026-02-08T03:13:41.882Z",
+  "updateAt": "2026-02-08T03:30:00.000Z",
+  "deleteAt": null
+}
+```
+
+#### Actualizar completamente (PUT `/api/cats/:id`)
+
+- **PUT** `/api/cats/:id`
+- **Descripción:** Reemplaza todos los campos del gato con los valores enviados. En un `PUT` deben enviarse todos los campos requeridos por la entidad.
+- **Parámetros:** `id` (path, requerido): ID del gato a reemplazar.
+- **Body (JSON):** (ejemplo con todos los campos)
+
+```json
+{
+  "name": "El gato con botas actualizado",
+  "age": 5,
+  "breed": "Tabby Naranja",
+  "description": "Descripción completa actualizada",
   "image": "https://cataas.com/cat/tabby"
 }
 ```
 
-- **Repuesta al agregar al nuevo gato a la db:**
+- **Respuesta de ejemplo:** objeto del gato tras el reemplazo completo.
+
+```json
+{
+  "id": 2,
+  "name": "El gato con botas actualizado",
+  "age": 5,
+  "description": "Descripción completa actualizada",
+  "breed": "Tabby Naranja",
+  "image": "https://cataas.com/cat/tabby",
+  "createAt": "2026-02-08T03:13:41.882Z",
+  "updateAt": "2026-02-08T03:30:00.000Z",
+  "deleteAt": null
+}
+```
+
+#### Eliminar un gato de la lista de la db por ID
+
+- **DELETE** `/api/cats/:id`
+- **Descripción:** Elimina un gato por su ID.
+- **Parámetros:**
+  - `id` (path, requerido): ID del gato a eliminar
+- **Respuesta:** 204 No Content
 
 ```json
 [
   {
-    "id": 2,
-    "name": "El gato con botas",
-    "age": 4,
-    "description": "El nombre del gato con botas, solo referencia al personaje.",
-    "breed": "Tabby Naranja",
-    "image": "https://cataas.com/cat/tabby",
-    "createAt": "2026-02-08T03:13:41.882Z",
-    "updateAt": "2026-02-08T03:13:41.882Z",
-    "deleteAt": null
+    `El gato con el ID: 6 ha sido eliminado.`
   }
 ]
 ```

@@ -27,16 +27,30 @@ Content-Type: application/json
 }
 
 
-### PUT
+### PUT | ALL
 
-PUT http://localhost:3000/api/cats/1 HTTP/1.1
+PUT http://localhost:3000/api/cats/4 HTTP/1.1
+Content-Type: application/json
 
+{
+  "age": 6,
+  "breed": "Siamese",
+  "description": "Mi gata siamese color cafe oscuro.",
+  "image": "https://cataas.com/cat/siamese",
+  "name": "Lunita"
+  
+}
 
-### PATCH
+### PATCH | PARTIAL
 
-PATCH http://localhost:3000/api/cats/1 HTTP/1.1
+PATCH http://localhost:3000/api/cats/5 HTTP/1.1
+Content-Type: application/json 
+
+{
+  "breed": "Siamese"
+}
 
 
 ### DELETE
 
-DELETE http://localhost:3000/api/cats/4 HTTP/1.1
+DELETE http://localhost:3000/api/cats/0 HTTP/1.1

@@ -1,7 +1,7 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// hablitar variables de entorno con nest
+// Habilitar variables de entorno con nest
 import { ConfigModule } from '@nestjs/config';
 
 // Importamos el LoggerMiddleware para ver los HTTP por consola.
@@ -13,7 +13,7 @@ import { AppController } from './app.controller';
 import { CatsModule } from './cats/cats.module';
 
 @Module({
-  // Habilitar varibales de entorno con nest
+  // Habilitar variables de entorno con nest
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), // Habilitar variables de entorno en toda la app
     CatsModule,

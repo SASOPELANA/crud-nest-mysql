@@ -23,8 +23,8 @@ async function bootstrap() {
     .addTag('cats')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  // the endpoint swagger --> http://localhost:3000/api
-  SwaggerModule.setup('api', app, documentFactory);
+  // the endpoint swagger --> http://localhost:3000/docs
+  SwaggerModule.setup('docs', app, documentFactory);
 
   // Habilitamos CORS para permitir solicitudes en el frontend definido
   app.enableCors();
