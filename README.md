@@ -38,7 +38,7 @@ NestJS provee excepciones listas para usar que lanzan automáticamente el status
 
 ### 1. En un Service (recomendado – lógica de negocio)
 
-```ts
+```typescript
 // src/users/users.service.ts  --> ejemplo de manejo de errores
 import {
   BadRequestException,

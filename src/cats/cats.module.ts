@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 // importamos la entidad de la base de datos
 import { Cat } from './entities/cat.entity';
+import { Breed } from 'src/breeds/entities/breed.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Cat])], // Importamos la entidad para su habilitación
+  imports: [TypeOrmModule.forFeature([Cat, Breed])], // Importamos la entidad para su habilitación
   controllers: [CatsController],
   providers: [CatsService],
 })

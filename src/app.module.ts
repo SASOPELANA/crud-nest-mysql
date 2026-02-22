@@ -11,12 +11,12 @@ import { LoggerMiddleware } from './utils/logger/logger/logger.middleware';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
 import { CatsModule } from './cats/cats.module';
+import { BreedsModule } from './breeds/breeds.module';
 
 @Module({
   // Habilitar variables de entorno con nest
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), // Habilitar variables de entorno en toda la app
-    CatsModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost', // 'localhost' porque Nest corre fuera del contenedor
@@ -27,6 +27,8 @@ import { CatsModule } from './cats/cats.module';
       autoLoadEntities: true, // Busca automáticamente archivos .entity.ts
       synchronize: true, // Crea las tablas automáticamente (solo desarrollo)
     }),
+    CatsModule,
+    BreedsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

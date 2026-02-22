@@ -8,24 +8,38 @@ import { UpdateCatDto } from './dto/update-cat.dto';
 import { Cat } from './entities/cat.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Breed } from 'src/breeds/entities/breed.entity';
 
 @Injectable()
 export class CatsService {
   // Inyectamos el repositorio --> lo usaremos para interactuar con la base de datos -> Cat
-  constructor(@InjectRepository(Cat) private catsRepository: Repository<Cat>) {}
+  constructor(
+    @InjectRepository(Cat) private readonly catsRepository: Repository<Cat>,
+    // Inyectamos el repositorio de Breed para validar la existencia de la raza al crear un gato
+    @InjectRepository(Breed)
+    private readonly breedRepository: Repository<Breed>,
+  ) {}
 
   //TODO:  Método POST
   async create(createCatDto: CreateCatDto) {
-    // 1. Buscamos si ya existe el gato en la db
+    const breed = await this.breedRepository.findOneBy({
+      name: createCatDto.breed,
+    });
+
+    if (!breed) {
+      throw new NotFoundException('La raza del gato no existe.');
+    }
+
+    // Buscamos si ya existe el gato en la db
     const catExists = await this.catsRepository.findOne({
       where: {
-        breed: createCatDto.breed,
         description: createCatDto.description,
         image: createCatDto.image,
+        breed: breed, // Usamos la entidad de raza encontrada
       },
     });
 
-    // 2. Si existe, lanzamos un error de Conflicto (409)
+    // Si existe, lanzamos un error de Conflicto (409)
     if (catExists) {
       throw new ConflictException({
         message: 'Registro duplicado detectado',
@@ -34,7 +48,10 @@ export class CatsService {
       });
     }
 
-    const cat = this.catsRepository.create(createCatDto);
+    const cat = this.catsRepository.create({
+      ...createCatDto,
+      breed, // Asignamos la entidad de la raza encontrada
+    });
     const resCat = await this.catsRepository.save(cat);
 
     if (!resCat) {
@@ -76,25 +93,27 @@ export class CatsService {
   // preload garantiza update semántico a nivel entidad
   // actualiza todos los campos y la fecha (updatedAt) en la DB
   async updateCatPartial(id: number, updateCatDto: UpdateCatDto) {
-    // Buscamos si ESTE gato (ID) ya tiene esos mismos datos
-    const catDateExists = await this.catsRepository.findOne({
-      where: {
-        id, // Buscamos por el mismo ID
-        ...updateCatDto,
-      },
-    });
+    let breed: Breed | undefined;
 
-    // Si existe, significa que no hay nada nuevo que cambiar
-    if (catDateExists) {
-      throw new ConflictException({
-        message: 'No hay cambios detectados',
-        detail: 'Este gato ya tiene exactamente esa misma información.',
+    // Validamos que el gato exista antes de intentar actualizarlo
+    if (updateCatDto.breed) {
+      const existBreed = await this.breedRepository.findOneBy({
+        name: updateCatDto.breed,
       });
+
+      if (!existBreed) {
+        throw new NotFoundException('La raza del gato no existe.');
+      }
+      breed = existBreed;
     }
 
     const cat = await this.catsRepository.preload({
       id,
-      ...updateCatDto,
+      name: updateCatDto.name,
+      age: updateCatDto.age,
+      description: updateCatDto.description,
+      image: updateCatDto.image,
+      ...(breed && { breed }), // Si se proporciona una nueva raza, se actualizará; si no, se mantendrá la existente
     });
 
     if (!cat) {
@@ -109,25 +128,21 @@ export class CatsService {
   // preload garantiza update semántico a nivel entidad
   // actualiza todos los campos y la fecha (updatedAt) en la DB
   async updateCat(id: number, updateAllCatDto: CreateCatDto) {
-    // Buscamos si ESTE gato (ID) ya tiene esos mismos datos
-    const catDateExists = await this.catsRepository.findOne({
-      where: {
-        id, // Buscamos por el mismo ID
-        ...updateAllCatDto,
-      },
+    const breed = await this.breedRepository.findOneBy({
+      name: updateAllCatDto.breed,
     });
 
-    // Si existe, significa que no hay nada nuevo que cambiar
-    if (catDateExists) {
-      throw new ConflictException({
-        message: 'No hay cambios detectados',
-        detail: 'Este gato ya tiene exactamente esa misma información.',
-      });
+    if (!breed) {
+      throw new NotFoundException('La raza del gato no existe.');
     }
 
     const cat = await this.catsRepository.preload({
       id,
-      ...updateAllCatDto,
+      name: updateAllCatDto.name,
+      age: updateAllCatDto.age,
+      description: updateAllCatDto.description,
+      image: updateAllCatDto.image,
+      breed,
     });
 
     if (!cat) {
@@ -143,12 +158,12 @@ export class CatsService {
     const cat = await this.catsRepository.findOneBy({ id });
 
     if (!cat) {
-      throw new NotFoundException(`El gato con el ID: ${id} no existe.`);
+      throw new NotFoundException(`El gato con el id ${id} no existe.`);
     }
 
     // Eliminación lógica con typeorm soft delete --> deja la fecha de eliminación en la base de datos, definida en la entidad
     await this.catsRepository.softDelete({ id });
 
-    return { message: `El gato con el ID: ${id} ha sido eliminado.` };
+    return { message: `El gato con el id ${id} ha sido eliminado.` };
   }
 }
