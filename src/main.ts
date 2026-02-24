@@ -15,6 +15,9 @@ async function bootstrap() {
     }),
   );
 
+  // Agrega un prefijo global a todas las rutas (opcional)
+  // app.setGlobalPrefix('api');
+
   // codigo para swagger
   const config = new DocumentBuilder()
     .setTitle('Cats example')

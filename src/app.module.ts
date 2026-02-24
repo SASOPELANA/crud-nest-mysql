@@ -12,6 +12,8 @@ import { AppService } from './app.service';
 import { AppController } from './app.controller';
 import { CatsModule } from './cats/cats.module';
 import { BreedsModule } from './breeds/breeds.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   // Habilitar variables de entorno con nest
@@ -29,6 +31,8 @@ import { BreedsModule } from './breeds/breeds.module';
     }),
     CatsModule,
     BreedsModule,
+    UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
