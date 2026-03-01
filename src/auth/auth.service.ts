@@ -4,6 +4,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service'; // importamos el service de users para usarlo en este service de auth
@@ -11,10 +12,14 @@ import { RegisterDto } from './dto/resgister.dto';
 
 import * as bcryptjs from 'bcryptjs';
 import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService, // inyectamos el servicio de jwt para generar el token de autenticacion
+  ) {}
 
   async register({ name, email, password }: RegisterDto) {
     const userExist = await this.usersService.findOneByEmail(email);
@@ -46,6 +51,17 @@ export class AuthService {
       throw new UnauthorizedException('Password is wrong');
     }
 
-    return user;
+    // creamos el payload del token de autenticacion, en este caso solo el email del usuario, pero se pueden agregar mas datos si se desea
+    const payload = { email: user.email };
+
+    const token = await this.jwtService.signAsync(payload);
+
+    if (!token) {
+      throw new InternalServerErrorException('Token could not be generated');
+    }
+
+    return {
+      token,
+    };
   }
 }
