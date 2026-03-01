@@ -4,7 +4,6 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service'; // importamos el service de users para usarlo en este service de auth
@@ -55,10 +54,6 @@ export class AuthService {
     const payload = { email: user.email };
 
     const token = await this.jwtService.signAsync(payload);
-
-    if (!token) {
-      throw new InternalServerErrorException('Token could not be generated');
-    }
 
     return {
       token,
