@@ -14,7 +14,7 @@ import { ConfigService } from '@nestjs/config';
       global: true, // este global le dice a culquier servicio puede usar jwt sin necesidad de importarlo
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' }, // el token de autenticacion expira en 1 hora
+        signOptions: { expiresIn: '1h' }, // el token de autenticación expira en 1 hora
       }),
       inject: [ConfigService],
     }),

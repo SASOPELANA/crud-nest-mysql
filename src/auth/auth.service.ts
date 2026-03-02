@@ -26,15 +26,17 @@ export class AuthService {
     if (userExist) {
       throw new BadRequestException('User already exist');
     }
-    const newUser = await this.usersService.create({
+
+    await this.usersService.create({
       name,
       email,
       password: await bcryptjs.hash(password, 10), // hasheamos la contraseña antes de guardarla en la base de datos
     });
 
-    //console.log(newUser);
-
-    return newUser;
+    return {
+      name,
+      email,
+    };
   }
 
   async login({ email, password }: LoginDto) {

@@ -16,23 +16,23 @@ Guía a través de la documentación Oficial de NestJS. Para una mejor experienc
 
 NestJS provee excepciones listas para usar que lanzan automáticamente el status HTTP correcto y formatean la respuesta en JSON.
 
-**Filosofía recomendada**  
+**Filosofía recomendada**
 
-- Lanzar excepciones directamente (`throw`) desde **services** (lógica de negocio) o controllers (validaciones simples).  
-- **No usar try/catch** salvo que necesites loguear, hacer cleanup o transformar el error.  
+- Lanzar excepciones directamente (`throw`) desde **services** (lógica de negocio) o controllers (validaciones simples).
+- **No usar try/catch** salvo que necesites loguear, hacer cleanup o transformar el error.
 - El filtro global de excepciones de NestJS las captura y responde automáticamente.
 
 ## Excepciones más usadas y cuándo lanzarlas
 
-| Excepción                        | Status | Cuándo usarla (caso típico)                              | Ejemplo de uso práctico                                      |
-|----------------------------------|--------|----------------------------------------------------------|--------------------------------------------------------------|
-| `BadRequestException`            | 400    | Datos inválidos, validación fallida, parámetro malo      | Email con formato incorrecto, campo requerido faltante      |
-| `UnauthorizedException`          | 401    | No autenticado (sin token, token inválido/expirado)      | Intento de acceso sin JWT válido o credenciales erróneas     |
-| `ForbiddenException`             | 403    | Autenticado pero sin permiso (rol insuficiente)          | Usuario "user" intenta eliminar un recurso de "admin"       |
-| `NotFoundException`              | 404    | Recurso no existe en la base de datos                    | `GET /users/999` → el usuario con ID 999 no existe           |
-| `ConflictException`              | 409    | Conflicto de estado (duplicado, ya existe)               | Registro de usuario con email que ya está en uso             |
-| `GoneException`                  | 410    | Recurso existió pero ya no está disponible               | Token de recuperación de contraseña ya expirado/usado       |
-| `InternalServerErrorException`   | 500    | Error grave del servidor (usar muy poco manualmente)     | Mejor dejar que errores no manejados suban solos             |
+| Excepción                      | Status | Cuándo usarla (caso típico)                          | Ejemplo de uso práctico                                  |
+| ------------------------------ | ------ | ---------------------------------------------------- | -------------------------------------------------------- |
+| `BadRequestException`          | 400    | Datos inválidos, validación fallida, parámetro malo  | Email con formato incorrecto, campo requerido faltante   |
+| `UnauthorizedException`        | 401    | No autenticado (sin token, token inválido/expirado)  | Intento de acceso sin JWT válido o credenciales erróneas |
+| `ForbiddenException`           | 403    | Autenticado pero sin permiso (rol insuficiente)      | Usuario "user" intenta eliminar un recurso de "admin"    |
+| `NotFoundException`            | 404    | Recurso no existe en la base de datos                | `GET /users/999` → el usuario con ID 999 no existe       |
+| `ConflictException`            | 409    | Conflicto de estado (duplicado, ya existe)           | Registro de usuario con email que ya está en uso         |
+| `GoneException`                | 410    | Recurso existió pero ya no está disponible           | Token de recuperación de contraseña ya expirado/usado    |
+| `InternalServerErrorException` | 500    | Error grave del servidor (usar muy poco manualmente) | Mejor dejar que errores no manejados suban solos         |
 
 ## Ejemplos prácticos
 
@@ -64,7 +64,9 @@ export class UsersService {
       throw new BadRequestException('El email debe ser válido');
     }
 
-    const emailExists = await this.userRepository.existsByEmail(createUserDto.email);
+    const emailExists = await this.userRepository.existsByEmail(
+      createUserDto.email,
+    );
     if (emailExists) {
       throw new ConflictException('El email ya está registrado');
     }
@@ -76,7 +78,9 @@ export class UsersService {
     const user = await this.findOne(id); // ya lanza NotFound si no existe
 
     if (user.id !== currentUser.id && !currentUser.isAdmin) {
-      throw new ForbiddenException('No tienes permiso para modificar este usuario');
+      throw new ForbiddenException(
+        'No tienes permiso para modificar este usuario',
+      );
     }
 
     // ... actualizar
@@ -112,6 +116,11 @@ pnpm install
 Variables de entorno requeridas:
 
 - `PORT`: Puerto donde correrá el servidor.
+- `JWT_SECRET`: Clave secreta para firmar y verificar los tokens JWT.
+- `MYSQL_USER`: Usuario de la base de datos MySQL.
+- `MYSQL_PASSWORD`: Contraseña del usuario de la base de datos MySQL.
+- `MYSQL_DATABASE`: Nombre de la base de datos MySQL.
+- `MYSQL_ROOT_PASSWORD`: Contraseña del usuario root de MySQL (usada por Docker).
 
   5.Correr el proyecto en modo desarrollo y el contenedor de MySQL con Docker, usando el archivo `docker-compose.yml` para levantar el contenedor y el servidor.
 
@@ -383,3 +392,112 @@ export class Cat {
   }
 ]
 ```
+
+---
+
+### Autenticación
+
+#### Registrar un nuevo usuario
+
+- **POST** `/api/auth/register`
+- **Descripción:** Registra un nuevo usuario en el sistema. Valida que el email no esté en uso y hashea la contraseña antes de guardarla.
+- **Body (JSON):**
+
+- **Content-Type:** application/json
+
+```json
+{
+  "name": "test2",
+  "email": "test2@test.com",
+  "password": "123456"
+}
+```
+
+- **Respuesta al registrar el nuevo usuario:**
+
+```json
+{
+  "id": 1,
+  "name": "test2",
+  "email": "test2@test.com",
+  "password": "$2a$10$hasheado...",
+  "rol": "user",
+  "createAt": "2026-03-01T22:00:00.000Z",
+  "updateAt": "2026-03-01T22:00:00.000Z",
+  "deleteAt": null
+}
+```
+
+#### Iniciar sesión
+
+- **POST** `/api/auth/login`
+- **Descripción:** Autentica al usuario con email y contraseña. Devuelve un token JWT con una expiración de **1 hora**.
+- **Body (JSON):**
+
+- **Content-Type:** application/json
+
+```json
+{
+  "email": "test2@test.com",
+  "password": "123456"
+}
+```
+
+- **Respuesta al iniciar sesión:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### Obtener perfil del usuario autenticado
+
+- **GET** `/api/auth/profile`
+- **Descripción:** Devuelve la información del usuario autenticado extraída del token JWT. Ruta protegida con `AuthGuard`, requiere enviar el token en el header.
+- **Header requerido:**
+
+```http
+Authorization: Bearer <token>
+```
+
+- **Respuesta de ejemplo:**
+
+```json
+{
+  "email": "test2@test.com",
+  "iat": 1772404132,
+  "exp": 1772407732
+}
+```
+
+---
+
+### Lista de Usuarios
+
+> **Nota:** Las rutas de `/users` están disponibles en el sistema pero sus métodos de actualización y eliminación están en desarrollo. Solo el registro de usuarios vía `/api/auth/register` y la búsqueda por email son funcionales.
+
+#### Obtener todos los usuarios
+
+- **GET** `/users`
+- **Descripción:** Devuelve todos los usuarios registrados.
+
+#### Obtener un usuario por ID
+
+- **GET** `/users/:id`
+- **Descripción:** Devuelve un usuario por su ID.
+- **Parámetros:**
+  - `id` (path, requerido): ID del usuario.
+
+#### Actualizar parcialmente un usuario
+
+- **PATCH** `/users/:id`
+- **Descripción:** Actualiza uno o varios campos de un usuario existente.
+- **Parámetros:** `id` (path, requerido): ID del usuario a actualizar.
+
+#### Eliminar un usuario por ID
+
+- **DELETE** `/users/:id`
+- **Descripción:** Elimina un usuario por su ID.
+- **Parámetros:**
+  - `id` (path, requerido): ID del usuario a eliminar
