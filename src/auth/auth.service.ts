@@ -52,13 +52,23 @@ export class AuthService {
       throw new UnauthorizedException('Password is wrong');
     }
 
-    // creamos el payload del token de autenticacion, en este caso solo el email del usuario, pero se pueden agregar mas datos si se desea
-    const payload = { email: user.email };
+    // creamos el payload del token de autenticacion, en este caso solo el email y el role del usuario, pero se pueden agregar mas campos si se desea
+    const payload = { email: user.email, role: user.role };
 
     const token = await this.jwtService.signAsync(payload);
 
     return {
       token,
     };
+  }
+
+  async profile({ email }: { email: string }) {
+    //if (role !== 'admin') {
+    // throw new UnauthorizedException(
+    //   'You are not authorized to access this resource',
+    // );
+    // }
+
+    return await this.usersService.findOneByEmail(email);
   }
 }
