@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 
 // Importamos el LoggerMiddleware para ver los HTTP por consola.
-import { LoggerMiddleware } from './utils/logger/logger/logger.middleware';
+import { LoggerMiddleware } from './utils/logger/logger.middleware';
 
 // Importamos el AppService y AppController. De los src/*
 import { AppService } from './app.service';

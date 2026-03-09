@@ -21,9 +21,17 @@ export class UsersService {
     return this.userRepository.findOneBy({ email });
   }
 
+  // metodo para obtener un usuario por su email con su contraseña --> GET
+  findByEmailWithPassword(email: string) {
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'name', 'role', 'email', 'password'],
+    });
+  }
+
   // opcional --> obtenemos todos los usuarios --> GET
   findAll() {
-    return `This action returns all users`;
+    return this.userRepository.find();
   }
 
   // opcional --> obtenemos un usuario por su id --> GET

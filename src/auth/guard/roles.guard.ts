@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RequestWithUser } from '../interfaces/request.auth';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { Role } from '../enums/rol.enum';
+import { Role } from '../../common/enums/rol.enum';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -21,6 +21,13 @@ export class RolesGuard implements CanActivate {
     //console.log(role); // --> debug
 
     const { user } = context.switchToHttp().getRequest<RequestWithUser>();
+
+    // con este if, le damos todo tipo de persimos al ADMIN
+    // Al ser el rol de ADMIN el mas alto, le damos acceso a todos los endpoints sin importar el rol que se le haya asignado en el decorador de roles,
+    // ya que el ADMIN tiene acceso a todo
+    if (user.role === Role.ADMIN) {
+      return true;
+    }
 
     return role.includes(user.role);
   }
