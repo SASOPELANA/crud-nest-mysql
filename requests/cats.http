@@ -38,13 +38,13 @@ Content-Type: application/json
   "description": "Mi gata siamese color cafe oscuro.",
   "image": "https://cataas.com/cat/siamese",
   "name": "Lunita3"
-  
 }
+
 
 ### PATCH | PARTIAL
 
 PATCH http://localhost:3000/api/cats/8 HTTP/1.1
-Content-Type: application/json 
+Content-Type: application/json
 
 {
   "breed": "Persian"
@@ -52,32 +52,51 @@ Content-Type: application/json
 
 
 ### DELETE
+
 DELETE http://localhost:3000/api/cats/80 HTTP/1.1
 
 
-### BREED
+### BREED | PROTECTED ROUTE
+
+
 ### GET ALL | BREED
 
-GET http://localhost:3000/api/breeds
+GET http://localhost:3000/api/breeds HTTP/1.1
+Accept: application/json
+Authorization: Bearer {{login.response.body.$.token}}
+
 
 ### GET ID | BREED
-GET http://localhost:3000/api/breeds/2
 
-### POST | BREED
-POST http://localhost:3000/api/breeds
+GET http://localhost:3000/api/breeds/2 HTTP/1.1
+Accept: application/json
+Authorization: Bearer {{login.response.body.$.token}}
+
+
+### POST | BREED | CREATE
+
+POST http://localhost:3000/api/breeds HTTP/1.1
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.token}}
 
 {
-  "name": "persian"
+  "name": "abisinio"
 }
 
+
 ### PATCH | BREED
-PATCH http://localhost:3000/api/breeds/4
+
+PATCH http://localhost:3000/api/breeds/4 HTTP/1.1
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.token}}
 
 {
   "name": "cute"
 }
 
+
 ### DELETE | BREED
-DELETE http://localhost:3000/api/breeds/9
+
+DELETE http://localhost:3000/api/breeds/9 HTTP/1.1 HTTP/1.1
+Accept: application/json
+Authorization: Bearer {{login.response.body.$.token}}

@@ -1,3 +1,5 @@
-### GET | USER
+### GET | USER | PROTECTED ROUTE
 
 GET http://localhost:3000/api/users HTTP/1.1
+Accept: application/json
+Authorization: Bearer {{login.response.body.$.token}}
